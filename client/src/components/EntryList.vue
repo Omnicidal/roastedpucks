@@ -5,7 +5,8 @@
 
         <EntryTable :entries="entries" @select="editEntry" />
 
-        <EntryEdit v-if="selectedEntry" :entry="selectedEntry" @close="selectedEntry = null" @saved="fetchEntries" />
+        <EntryEdit v-if="selectedEntry" :existingIds="existingIds" :entry="selectedEntry" @close="selectedEntry = null"
+            @saved="fetchEntries" @delete="confirmDelete" />
 
         <ConfirmModal v-if="entryToDelete" :message="`Delete entry ${entryToDelete.name}?`" @confirm="deleteEntry"
             @cancel="entryToDelete = null" />
@@ -13,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import EntryTable from "./EntryTable.vue";
 import EntryEdit from "./EntryEdit.vue";
 import ConfirmModal from "./ConfirmModal.vue";
@@ -22,6 +23,7 @@ import type { Entry } from "../types/Entry";
 const entries = ref<Entry[]>([]);
 const selectedEntry = ref<Entry | null>(null);
 const entryToDelete = ref<Entry | null>(null);
+const existingIds = computed(() => new Set(entries.value.map(entry => entry.id)));
 
 async function fetchEntries() {
     const res = await fetch("http://localhost:5000/api/entries");
@@ -52,6 +54,7 @@ async function deleteEntry() {
         method: "DELETE",
     });
     entryToDelete.value = null;
+    selectedEntry.value = null;
     fetchEntries();
 }
 

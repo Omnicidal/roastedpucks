@@ -5,20 +5,21 @@
 
         <div class="actions">
             <button @click="$emit('close')">Cancel</button>
-            <button class="danger" @click="$emit('delete', localEntry)">Delete</button>
+            <button v-if="showDeleteOption" class="danger" @click="$emit('delete', localEntry)">Delete</button>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import EntryForm from "./EntryForm.vue";
 import type { Entry } from "../types/Entry";
 
-const props = defineProps<{ entry: Entry }>();
+const props = defineProps<{ entry: Entry, existingIds: Set<string> }>();
 const emit = defineEmits(["saved", "close", "delete"]);
 
 const localEntry = ref<Entry>({ ...props.entry });
+const showDeleteOption = computed(() => props.existingIds.has(props.entry.id));
 
 watch(
     () => props.entry,
