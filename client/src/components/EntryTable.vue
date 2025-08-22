@@ -10,7 +10,7 @@
         <tbody>
             <tr v-for="entry in entries" :key="entry.id" @click="$emit('select', entry)">
                 <td>{{ entry.id }}</td>
-                <td>{{ entry.displayName }}</td>
+                <td>{{ entry.name }}</td>
                 <td>{{ entry.pucks }}</td>
             </tr>
         </tbody>

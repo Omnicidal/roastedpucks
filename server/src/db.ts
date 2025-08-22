@@ -1,84 +1,71 @@
 import sqlite3 from "sqlite3";
-import path from "path";
-import { fileURLToPath } from "url";
+import { open, Database } from "sqlite";
 
-interface Entry {
+sqlite3.verbose();
+
+export interface Entry {
   id: string;
   name: string;
   pucks: number;
   tier: string;
-  notes?: string | null;
+  notes?: string;
 }
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+let db: Database<sqlite3.Database, sqlite3.Statement>;
 
-const dbPath = process.env.DB_PATH || path.join(__dirname, "../entries.db");
-const sqlite = sqlite3.verbose();
-const db = new sqlite.Database(dbPath);
-
-export const init = (): void => {
-  db.serialize(() => {
-    db.run(`
-CREATE TABLE IF NOT EXISTS entries (
-id TEXT PRIMARY KEY,
-name TEXT NOT NULL,
-pucks INTEGER NOT NULL CHECK(pucks >= 0),
-tier TEXT NOT NULL,
-notes TEXT
-)
-`);
-  });
-};
-
-export const all = (): Promise<Pick<Entry, "id" | "name" | "pucks">[]> =>
-  new Promise((resolve, reject) => {
-    db.all(
-      "SELECT id, name, pucks FROM entries ORDER BY name ASC",
-      [],
-      (err, rows: Pick<Entry, "id" | "name" | "pucks">[]) => {
-        if (err) return reject(err);
-        resolve(rows);
-      }
-    );
+export async function init() {
+  db = await open({
+    filename: "./database.sqlite",
+    driver: sqlite3.Database,
   });
 
-export const get = (id: string): Promise<Entry | undefined> =>
-  new Promise((resolve, reject) => {
-    db.get("SELECT * FROM entries WHERE id = ?", [id], (err, row: Entry) => {
-      if (err) return reject(err);
-      resolve(row);
-    });
-  });
+  await db.run(`
+    CREATE TABLE IF NOT EXISTS entries (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      pucks INTEGER NOT NULL,
+      tier TEXT NOT NULL,
+      notes TEXT
+    )
+  `);
+}
 
-export const create = (entry: Entry): Promise<Entry> =>
-  new Promise((resolve, reject) => {
-    db.run(
-      "INSERT INTO entries (id, name, pucks, tier, notes) VALUES (?,?,?,?,?)",
-      [entry.id, entry.name, entry.pucks, entry.tier, entry.notes ?? null],
-      function (err) {
-        if (err) return reject(err);
-        resolve(entry);
-      }
-    );
-  });
+export async function all(): Promise<Entry[]> {
+  return db.all<Entry[]>("SELECT * FROM entries");
+}
 
-export const update = (id: string, entry: Omit<Entry, "id">): Promise<void> =>
-  new Promise((resolve, reject) => {
-    db.run(
-      "UPDATE entries SET name = ?, pucks = ?, tier = ?, notes = ? WHERE id = ?",
-      [entry.name, entry.pucks, entry.tier, entry.notes ?? null, id],
-      function (err) {
-        if (err) return reject(err);
-        resolve();
-      }
-    );
-  });
+export async function get(id: string): Promise<Entry | undefined> {
+  return db.get<Entry>("SELECT * FROM entries WHERE id = ?", id);
+}
 
-export const remove = (id: string): Promise<void> =>
-  new Promise((resolve, reject) => {
-    db.run("DELETE FROM entries WHERE id = ?", [id], function (err) {
-      if (err) return reject(err);
-      resolve();
-    });
-  });
+export async function create(entry: Entry): Promise<Entry> {
+  const { id, name, pucks, tier, notes } = entry;
+  await db.run(
+    `INSERT INTO entries (id, name, pucks, tier, notes) VALUES (?, ?, ?, ?, ?)`,
+    id,
+    name,
+    pucks,
+    tier,
+    notes ?? null
+  );
+  return entry;
+}
+
+export async function update(
+  id: string,
+  entry: Omit<Entry, "id">
+): Promise<void> {
+  const { name, pucks, tier, notes } = entry;
+  await db.run(
+    `UPDATE entries SET name = ?, pucks = ?, tier = ?, notes = ? WHERE id = ?`,
+    name,
+    pucks,
+    tier,
+    notes ?? null,
+    id
+  );
+}
+
+export async function remove(id: string): Promise<void> {
+  await db.run(`DELETE FROM entries WHERE id = ?`, id);
+}

@@ -1,6 +1,6 @@
 <template>
     <form @submit.prevent="onSubmit" class="space-y-2">
-        <input v-model="entry.displayName" placeholder="Display Name" />
+        <input v-model="entry.name" placeholder="Display Name" />
         <input v-model.number="entry.pucks" type="number" placeholder="Pucks" />
         <input v-model="entry.tier" placeholder="Tier" />
         <textarea v-model="entry.notes" placeholder="Notes"></textarea>
