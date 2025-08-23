@@ -26,13 +26,13 @@ app.get("/api/entries", async (_: Request, res: Response) => {
 
 app.post("/api/entries", async (req: Request, res: Response) => {
   try {
-    const { id, name, pucks, tier, notes } = req.body;
-    if (!id || !name || typeof pucks !== "number" || pucks < 0 || !tier) {
+    const { id, name, pucks, tier, notes, phone } = req.body;
+    if (!id || !name || typeof pucks !== "number" || pucks < 0 || !tier || !phone) {
       return res
         .status(400)
-        .json({ error: "id, name, pucks (>=0), and tier are required." });
+        .json({ error: "id, name, pucks (>=0), tier, and phone are required." });
     }
-    const created = await create({ id, name, pucks, tier, notes });
+    const created = await create({ id, name, pucks, tier, notes, phone });
     res.status(201).json(created);
   } catch (e: any) {
     const isUnique = /SQLITE_CONSTRAINT/.test(e.message);
@@ -54,15 +54,15 @@ app.get("/api/entries/:id", async (req: Request, res: Response) => {
 
 app.put("/api/entries/:id", async (req: Request, res: Response) => {
   try {
-    const { name, pucks, tier, notes } = req.body;
-    if (!name || typeof pucks !== "number" || pucks < 0 || !tier) {
+    const { name, pucks, tier, notes, phone } = req.body;
+    if (!name || typeof pucks !== "number" || pucks < 0 || !tier || !phone) {
       return res
         .status(400)
-        .json({ error: "name, pucks (>=0), and tier are required." });
+        .json({ error: "name, pucks (>=0), tier, and phone are required." });
     }
     const existing = await get(req.params.id);
     if (!existing) return res.status(404).json({ error: "Not found" });
-    await update(req.params.id, { name, pucks, tier, notes });
+    await update(req.params.id, { name, pucks, tier, notes, phone });
     const updated = await get(req.params.id);
     res.json(updated);
   } catch (e: any) {

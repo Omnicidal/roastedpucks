@@ -3,5 +3,6 @@ export interface Entry {
   name: string;
   pucks: number;
   tier: string;
+  phone: string;
   notes?: string | null;
 }

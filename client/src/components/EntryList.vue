@@ -9,33 +9,29 @@
                     </img>
                 </template>
                 <template #end>
-                    <div class="flex items-center gap-2">
-                        <InputText placeholder="Search by name" type="text" class="w-32 sm:w-auto" v-model="search" />
-                    </div>
+                    <InputText placeholder="Search by name" type="text" class="w-32 sm:w-auto" v-model="search" />
                 </template>
             </Menubar>
         </div>
-        <button @click="createNew">+ Add Entry</button>
-        <DataTable showGridlines stripedRows v-model:selection="selectedEntry" :value="filteredEntries" selectionMode="single" dataKey="id"
-            :metaKeySelection="false" tableStyle="min-width: 50rem" :rowsPerPageOptions="[5, 10, 20, 50]" paginator
-            :rows="5">
+        <Button severity="success" label="+ Add Entry" @click="createNew" class="button" />
+        <DataTable showGridlines stripedRows v-model:selection="selectedEntry" :value="filteredEntries"
+            selectionMode="single" dataKey="id" :metaKeySelection="false" tableStyle="min-width: 50rem"
+            :rowsPerPageOptions="[50, 100, 150, 200]" paginator :rows="50">
             <Column field="name" header="Name" sortable></Column>
             <Column field="pucks" header="Pucks" sortable></Column>
             <Column field="tier" header="Tier" sortable></Column>
         </DataTable>
-        <EntryEdit v-if="selectedEntry" :existingIds="existingIds" :entry="selectedEntry" @close="selectedEntry = null"
-            @saved="fetchEntries" @delete="confirmDelete" />
-        <ConfirmModal v-if="entryToDelete" :message="`Delete entry ${entryToDelete.name}?`" @confirm="deleteEntry"
-            @cancel="entryToDelete = null" />
+        <EntryEdit v-if="selectedEntry" :existingIds="existingIds" :entry="selectedEntry" @delete="deleteEntry" @close="selectedEntry = null"
+            @saved="fetchEntries" />
     </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted, computed } from "vue";
 import EntryEdit from "./EntryEdit.vue";
-import ConfirmModal from "./ConfirmModal.vue";
 import type { Entry } from "../types/Entry";
 
+import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Menubar from "primevue/menubar";
@@ -51,7 +47,6 @@ const search = ref<string>("");
 const entries = ref<Entry[]>([]);
 const filteredEntries = computed(() => entries.value.filter((e) => e.name.toLowerCase().includes(search.value.toLowerCase())));
 const selectedEntry = ref<Entry | null>(null);
-const entryToDelete = ref<Entry | null>(null);
 const existingIds = computed(() => new Set(entries.value.map(entry => entry.id)));
 
 async function fetchEntries() {
@@ -66,23 +61,14 @@ function createNew() {
         pucks: 0,
         tier: "",
         notes: "",
+        phone: "",
     };
 }
 
-function editEntry(entry: Entry) {
-    selectedEntry.value = { ...entry };
-}
-
-function confirmDelete(entry: Entry) {
-    entryToDelete.value = entry;
-}
-
-async function deleteEntry() {
-    if (!entryToDelete.value) return;
-    await fetch(`http://localhost:5000/api/entries/${entryToDelete.value.id}`, {
+async function deleteEntry(entryId: string) {
+    await fetch(`http://localhost:5000/api/entries/${entryId}`, {
         method: "DELETE",
     });
-    entryToDelete.value = null;
     selectedEntry.value = null;
     fetchEntries();
 }
@@ -93,5 +79,9 @@ onMounted(fetchEntries);
 <style scoped>
 .menu {
     padding-bottom: 30px;
+}
+
+.button {
+    margin-bottom: 30px;
 }
 </style>

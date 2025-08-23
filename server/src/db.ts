@@ -8,6 +8,7 @@ export interface Entry {
   name: string;
   pucks: number;
   tier: string;
+  phone: string;
   notes?: string;
 }
 
@@ -25,6 +26,7 @@ export async function init() {
       name TEXT NOT NULL,
       pucks INTEGER NOT NULL,
       tier TEXT NOT NULL,
+      phone TEXT NOT NULL,
       notes TEXT
     )
   `);
@@ -39,13 +41,14 @@ export async function get(id: string): Promise<Entry | undefined> {
 }
 
 export async function create(entry: Entry): Promise<Entry> {
-  const { id, name, pucks, tier, notes } = entry;
+  const { id, name, pucks, tier, phone, notes } = entry;
   await db.run(
-    `INSERT INTO entries (id, name, pucks, tier, notes) VALUES (?, ?, ?, ?, ?)`,
+    `INSERT INTO entries (id, name, pucks, tier, phone, notes) VALUES (?, ?, ?, ?, ?, ?)`,
     id,
     name,
     pucks,
     tier,
+    phone,
     notes ?? null
   );
   return entry;
@@ -55,12 +58,13 @@ export async function update(
   id: string,
   entry: Omit<Entry, "id">
 ): Promise<void> {
-  const { name, pucks, tier, notes } = entry;
+  const { name, pucks, tier, notes, phone } = entry;
   await db.run(
-    `UPDATE entries SET name = ?, pucks = ?, tier = ?, notes = ? WHERE id = ?`,
+    `UPDATE entries SET name = ?, pucks = ?, tier = ?, phone = ?, notes = ? WHERE id = ?`,
     name,
     pucks,
     tier,
+    phone,
     notes ?? null,
     id
   );

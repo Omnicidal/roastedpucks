@@ -10,8 +10,12 @@ import EntryList from "./components/EntryList.vue";
 
 <style>
 #app {
-    font-family: Avenir, Helvetica, Arial, sans-serif;
+    font-family: Inter, Helvetica, Arial, sans-serif;
     margin: 2rem;
+}
+
+* {
+    font-family: Inter, Helvetica, Arial, sans-serif;
 }
 
 h1 {
