@@ -1,6 +1,5 @@
 <template>
     <div id="app">
-        <h1>Entry Manager</h1>
         <EntryList />
     </div>
 </template>
