@@ -1,9 +1,13 @@
 <template>
     <div>
         <h2>Entries</h2>
+        <div>
+            <input v-model="search" placeholder="Search" />
+        </div>
+
         <button @click="createNew">+ Add Entry</button>
 
-        <EntryTable :entries="entries" @select="editEntry" />
+        <EntryTable :entries="filteredEntries" @select="editEntry" />
 
         <EntryEdit v-if="selectedEntry" :existingIds="existingIds" :entry="selectedEntry" @close="selectedEntry = null"
             @saved="fetchEntries" @delete="confirmDelete" />
@@ -20,7 +24,9 @@ import EntryEdit from "./EntryEdit.vue";
 import ConfirmModal from "./ConfirmModal.vue";
 import type { Entry } from "../types/Entry";
 
+const search = ref<string>("");
 const entries = ref<Entry[]>([]);
+const filteredEntries = computed(() => entries.value.filter((e) => e.name.toLowerCase().includes(search.value.toLowerCase())));
 const selectedEntry = ref<Entry | null>(null);
 const entryToDelete = ref<Entry | null>(null);
 const existingIds = computed(() => new Set(entries.value.map(entry => entry.id)));
